@@ -105,6 +105,53 @@ class TestEagle3ConverterFixes:
     @patch(
         "speculators.convert.eagle.eagle3_converter.PretrainedConfig.get_config_dict"
     )
+    def test_config_qwen3_model_type(
+        self, mock_get_config, sample_eagle3_config, sample_verifier_config
+    ):
+        """Test that Qwen3Config is created when eagle config has model_type=qwen3."""
+        from transformers.models.qwen3.configuration_qwen3 import Qwen3Config
+
+        mock_get_config.return_value = (sample_verifier_config, None)
+
+        converter = Eagle3Converter()
+        sample_eagle3_config["model_type"] = "qwen3"
+
+        config = converter._create_transformer_config_from_eagle(
+            sample_eagle3_config, "Qwen/Qwen3-8B"
+        )
+
+        assert isinstance(config, Qwen3Config)
+        assert config.model_type == "qwen3"
+        assert config.hidden_size == 4096
+        assert config.num_attention_heads == 32
+        assert config.rope_theta == 10000.0
+        assert config.max_position_embeddings == 131072
+
+    @pytest.mark.sanity
+    @patch(
+        "speculators.convert.eagle.eagle3_converter.PretrainedConfig.get_config_dict"
+    )
+    def test_config_defaults_to_llama_without_model_type(
+        self, mock_get_config, sample_eagle3_config, sample_verifier_config
+    ):
+        """Test that LlamaConfig is created when eagle config has no model_type."""
+        from transformers import LlamaConfig
+
+        mock_get_config.return_value = (sample_verifier_config, None)
+
+        converter = Eagle3Converter()
+        sample_eagle3_config.pop("model_type", None)
+
+        config = converter._create_transformer_config_from_eagle(
+            sample_eagle3_config, "meta-llama/Llama-3.1-8B-Instruct"
+        )
+
+        assert isinstance(config, LlamaConfig)
+
+    @pytest.mark.sanity
+    @patch(
+        "speculators.convert.eagle.eagle3_converter.PretrainedConfig.get_config_dict"
+    )
     def test_config_num_hidden_layers_from_config(
         self, mock_get_config, sample_eagle3_config
     ):

@@ -7,6 +7,7 @@ from pathlib import Path
 import torch
 from loguru import logger
 from transformers import LlamaConfig, PretrainedConfig
+from transformers.models.qwen3.configuration_qwen3 import Qwen3Config
 
 from speculators.config import SpeculatorsConfig, VerifierConfig
 from speculators.convert.eagle.eagle3_legacy_model import Eagle3Speculator
@@ -134,7 +135,7 @@ class Eagle3Converter:
 
     def _create_transformer_config_from_eagle(
         self, eagle_config: dict, base_model: str
-    ) -> LlamaConfig:
+    ) -> PretrainedConfig:
         # Load target model config for vLLM compatibility
         try:
             target_config_dict, _ = PretrainedConfig.get_config_dict(base_model)
@@ -143,7 +144,10 @@ class Eagle3Converter:
                 f"Failed to load config for base model {base_model}: {e}"
             ) from e
 
-        return LlamaConfig(
+        model_type = eagle_config.get("model_type", "llama")
+        logger.info(f"Using transformer layer architecture: {model_type}")
+
+        common_kwargs = dict(
             vocab_size=eagle_config.get("target_vocab_size", 128000),
             hidden_size=eagle_config.get("hidden_size", 4096),
             intermediate_size=eagle_config.get("intermediate_size", 11008),
@@ -151,7 +155,6 @@ class Eagle3Converter:
             num_attention_heads=eagle_config.get("num_attention_heads", 32),
             num_key_value_heads=eagle_config.get("num_key_value_heads", 8),
             hidden_act=eagle_config.get("hidden_act", "silu"),
-            # Ensure max_position_embeddings match between Eagle3 and target configs
             max_position_embeddings=max(
                 eagle_config.get("max_position_embeddings", 4096),
                 target_config_dict.get("max_position_embeddings", 4096),
@@ -160,9 +163,24 @@ class Eagle3Converter:
             rms_norm_eps=eagle_config.get("rms_norm_eps", 1e-6),
             use_cache=True,
             attention_bias=eagle_config.get("attention_bias", False),
-            mlp_bias=eagle_config.get("mlp_bias", False),
             tie_word_embeddings=False,
             head_dim=eagle_config.get("head_dim"),
+        )
+
+        if model_type == "qwen3":
+            dtype_kwargs = {}
+            torch_dtype = eagle_config.get("torch_dtype")
+            if torch_dtype is not None:
+                dtype_kwargs["torch_dtype"] = torch_dtype
+            return Qwen3Config(
+                **common_kwargs,
+                rope_theta=eagle_config.get("rope_theta", 10000.0),
+                **dtype_kwargs,
+            )
+
+        return LlamaConfig(
+            **common_kwargs,
+            mlp_bias=eagle_config.get("mlp_bias", False),
             **build_llama_config_rope_kwargs(
                 rope_theta=eagle_config.get("rope_theta", 10000.0),
             ),
