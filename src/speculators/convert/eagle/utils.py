@@ -15,6 +15,8 @@ from loguru import logger
 from safetensors import safe_open
 from transformers import LlamaConfig
 
+# Transformers v5 renamed LlamaConfig params (rope_theta → rope_parameters,
+# torch_dtype → dtype). Newer configs like Qwen3Config don't need this shimming.
 _LLAMA_CONFIG_PARAMS = set(inspect.signature(LlamaConfig.__init__).parameters)
 _LLAMA_CONFIG_HAS_ROPE_THETA = "rope_theta" in _LLAMA_CONFIG_PARAMS
 _LLAMA_CONFIG_HAS_TORCH_DTYPE = "torch_dtype" in _LLAMA_CONFIG_PARAMS
