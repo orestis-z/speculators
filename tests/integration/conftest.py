@@ -97,6 +97,8 @@ def make_eagle3_model(
     *,
     draft_vocab_size: int = 64,
     norm_before_residual: bool = False,
+    norm_before_fc: bool = False,
+    use_post_norm_feedback: bool = False,
     device: str = "cuda:0",
     dtype: torch.dtype = torch.bfloat16,
 ) -> Eagle3DraftModel:
@@ -105,6 +107,8 @@ def make_eagle3_model(
         transformer_layer_config=copy.deepcopy(TINY_LLAMA_CONFIG),
         draft_vocab_size=draft_vocab_size,
         norm_before_residual=norm_before_residual,
+        norm_before_fc=norm_before_fc,
+        use_post_norm_feedback=use_post_norm_feedback,
         embed_requires_grad=False,
         speculators_config=SpeculatorsConfig(
             algorithm="eagle3",
@@ -159,6 +163,7 @@ def make_peagle_model(
     draft_vocab_size: int = 64,
     num_depths: int = 4,
     down_sample_ratio: float = 0.7,
+    norm_before_fc: bool = False,
     device: str = "cuda:0",
     dtype: torch.dtype = torch.bfloat16,
 ) -> PEagleDraftModel:
@@ -167,6 +172,7 @@ def make_peagle_model(
         transformer_layer_config=copy.deepcopy(TINY_LLAMA_CONFIG),
         draft_vocab_size=draft_vocab_size,
         norm_before_residual=False,
+        norm_before_fc=norm_before_fc,
         embed_requires_grad=True,
         num_depths=num_depths,
         down_sample_ratio=down_sample_ratio,
