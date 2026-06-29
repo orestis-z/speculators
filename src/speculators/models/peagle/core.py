@@ -90,6 +90,7 @@ class PEagleDraftModel(Eagle3DraftModel):
             num_depths=self.num_depths,
             down_sample_ratio=self.down_sample_ratio,
             down_sample_ratio_min=self.down_sample_ratio_min,
+            max_anchors=self.config.max_anchors,
         )
         total_sampled = anchor_pos.shape[0]
 
@@ -224,6 +225,7 @@ class PEagleDraftModel(Eagle3DraftModel):
             down_sample_ratio=kwargs.get("down_sample_ratio", 0.7),
             down_sample_ratio_min=kwargs.get("down_sample_ratio_min", 0.2),
             mask_token_id=kwargs.get("mask_token_id"),
+            max_anchors=kwargs.get("max_anchors"),
             sink_size=kwargs.get("sink_size"),
             max_context_window=kwargs.get("max_context_window"),
             speculators_config=SpeculatorsConfig(
