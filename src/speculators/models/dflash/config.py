@@ -70,6 +70,13 @@ class DFlashSpeculatorConfig(SpeculatorModelConfig):
         "bidirectional.",
     )
 
+    shift_label: bool = Field(
+        default=False,
+        description="Shift labels by 1 so position p predicts token p+1. "
+        "When True, speculative_tokens = block_size (one extra draft token "
+        "per anchor). Requires matching vLLM inference support.",
+    )
+
     @field_serializer("transformer_layer_config")
     def serialize_transformer_config(self, value: PretrainedConfig) -> dict:
         """Serialize transformer config to dict."""

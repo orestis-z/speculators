@@ -174,6 +174,8 @@ class DFlashDraftModel(DraftVocabMixin, SpeculatorModel):
             "draft_attn_impl", "simple_flex_attention"
         )
         block_size = kwargs.get("block_size", 8)
+        shift_label = kwargs.get("shift_label", False)
+        speculative_tokens = block_size if shift_label else block_size - 1
         return {
             "transformer_layer_config": verifier_config,
             "draft_vocab_size": kwargs["draft_vocab_size"],
@@ -181,11 +183,11 @@ class DFlashDraftModel(DraftVocabMixin, SpeculatorModel):
             "aux_hidden_state_layer_ids": target_layer_ids,
             "mask_token_id": kwargs.get("mask_token_id"),
             "sliding_window_non_causal": kwargs.get("sliding_window_non_causal", False),
+            "shift_label": shift_label,
             "speculators_config": SpeculatorsConfig(
                 algorithm=algorithm,
                 proposal_methods=[
-                    # First block position is the anchor, not emitted during gen.
-                    GreedyTokenProposalConfig(speculative_tokens=block_size - 1)
+                    GreedyTokenProposalConfig(speculative_tokens=speculative_tokens)
                 ],
                 default_proposal_method="greedy",
                 verifier=VerifierConfig.from_pretrained(

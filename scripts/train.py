@@ -956,6 +956,13 @@ def parse_args():
         "and P-EAGLE training (default: 3072).",
     )
     parser.add_argument(
+        "--shift-label",
+        action="store_true",
+        default=False,
+        help="Shift labels by 1 so position p predicts token p+1. "
+        "Produces block_size draft tokens per anchor instead of block_size-1.",
+    )
+    parser.add_argument(
         "--dflash-decay-gamma",
         type=float,
         default=4.0,
